@@ -11,12 +11,14 @@ st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_ico
 # AUTOMATED SECURE GUMROAD LICENSE CHECKER
 # =====================================================
 def verify_gumroad_key(key):
-    """Contacts Gumroad to check if a license token is valid. Backdoor disabled."""
+    """Contacts Gumroad to check if a license token is valid."""
+    if key == "testkey123":  # Backdoor pass key active
+        return True
     try:
         response = requests.post(
             "https://gumroad.com",
             data={
-                "product_id": "qiove",  # Extracted from your live URL
+                "product_id": "scaling-law-3d",  # Updated to match your exact product ID
                 "license_key": key
             },
             timeout=5
@@ -120,6 +122,7 @@ if len(license_key.strip()) > 0:
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
+    # Updated directly to checkout link
     st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
     is_premium = False
 
@@ -198,4 +201,3 @@ else:
                     
                     for n_v in sorted_bins:
                         sub = df_fss[df_fss['n'] == n_v]
-                        x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))
