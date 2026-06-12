@@ -18,7 +18,7 @@ def verify_gumroad_key(key):
         response = requests.post(
             "https://gumroad.com",
             data={
-                "product_id": "scaling-law-3d",  # Your unique Gumroad Product ID
+                "product_id": "scaling-law-3d",  # Your unique Gumroad Product Slug
                 "license_key": key
             },
             timeout=5
@@ -122,8 +122,8 @@ if len(license_key.strip()) > 0:
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
-    # Updated to global direct shortcut format to bypass landing pages
-    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gum.co)")
+    # Formatted explicitly to launch your exact card checkout directly
+    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
     is_premium = False
 
 # Mode Selector
@@ -200,4 +200,3 @@ else:
                     ax[0].grid(True, alpha=0.2)
                     
                     for n_v in sorted_bins:
-                        sub = df_fss[df_fss['n'] == n_v]
