@@ -199,4 +199,4 @@ else:
                     ax[0].set_ylabel("Observable Target (K)")
                     ax[0].grid(True, alpha=0.2)
                     
-                    for n_v in sorted_bins:
+                    for n_v in sorted_bins:sub = df_fss[df_fss['n'] == n_v]x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))ax[1].scatter(x_collapsed, sub['K'], alpha=0.5)ax[1].set_title("Optimized Phase Collapse Line")ax[1].set_xlabel(f"(g - {round(res['gc'], 2)}) * n^(1/{round(res['nu'], 2)})")ax[1].grid(True, alpha=0.2)st.pyplot(fig)
