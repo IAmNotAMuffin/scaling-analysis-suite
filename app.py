@@ -8,12 +8,10 @@ import requests
 st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_icon="🧮")
 
 # =====================================================
-# AUTOMATED GUMROAD LICENSE CHECKER
+# AUTOMATED SECURE GUMROAD LICENSE CHECKER
 # =====================================================
 def verify_gumroad_key(key):
-    """Contacts Gumroad to check if a license token is valid."""
-    if key == "testkey123":  # Developer backdoor pass key
-        return True
+    """Contacts Gumroad to check if a license token is valid. Backdoor disabled."""
     try:
         response = requests.post(
             "https://gumroad.com",
@@ -86,7 +84,7 @@ def run_3d_fss_engine(df):
 st.title("🧮 Universal Scientific Scaling Suite")
 st.write("Analyze power-laws and test multi-dimensional finite-size scaling collapses inside one unified workspace.")
 
-# QUICK USER GUIDE COMPONENT
+# INTEGRATED INTERACTIVE USER GUIDE
 with st.expander("📖 Quick User Guide & CSV Formatting Rules", expanded=False):
     st.markdown("""
     ### How to Format Your Input Data (.csv)
