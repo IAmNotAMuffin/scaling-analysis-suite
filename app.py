@@ -3,8 +3,29 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
+import requests
 
 st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_icon="🧮")
+
+# =====================================================
+# AUTOMATED GUMROAD LICENSE CHECKER
+# =====================================================
+def verify_gumroad_key(key):
+    """Contacts Gumroad to check if a license token is valid."""
+    if key == "testkey123":  # Developer backdoor pass key
+        return True
+    try:
+        response = requests.post(
+            "https://gumroad.com",
+            data={
+                "product_id": "qiove",  # Extracted from your live URL
+                "license_key": key
+            },
+            timeout=5
+        )
+        return response.json().get("success", False)
+    except Exception:
+        return False
 
 # =====================================================
 # ENGINE 1: FREE 2D LOG-LOG REGRESSION
@@ -65,23 +86,46 @@ def run_3d_fss_engine(df):
 st.title("🧮 Universal Scientific Scaling Suite")
 st.write("Analyze power-laws and test multi-dimensional finite-size scaling collapses inside one unified workspace.")
 
-# Sidebar License wall integration
+# QUICK USER GUIDE COMPONENT
+with st.expander("📖 Quick User Guide & CSV Formatting Rules", expanded=False):
+    st.markdown("""
+    ### How to Format Your Input Data (.csv)
+    Your spreadsheet must be a comma-separated `.csv` file containing specific numeric columns based on your target analysis type.
+    
+    #### 🔹 For Free 2D Power-Law Fit:
+    Requires at least **two columns**: System Size (`n`) and your target observable value (`g_peak`). All values must be greater than zero.
+    *   **Example Structure:**
+    """)
+    st.code("n,g_peak\n5,1.5\n10,2.9\n20,5.8\n40,12.1", language="text")
+    
+    st.markdown("""
+    #### 🔸 For Premium 3D FSS Curve Collapse:
+    Requires at least **three columns**: System Size (`n`), Phase/Control parameter (`g`), and your core target measurement (`K`). 
+    The engine automatically handles quantile size-binning to calculate scaling functions.
+    *   **Example Structure:**
+    """)
+    st.code("n,g,K\n5,0.5,120\n5,1.0,140\n10,0.5,180\n10,1.0,210\n20,0.5,250\n20,1.0,290", language="text")
+
+# Sidebar License Interface
 st.sidebar.header("🔑 Software Authorization")
 license_key = st.sidebar.text_input("Enter Premium Product Key", type="password")
 
-if license_key == "testkey123":
-    st.sidebar.success("🚀 Premium Features Unlocked!")
-    is_premium = True
-elif len(license_key.strip()) > 0:
-    st.sidebar.error("❌ Invalid Key Token")
-    is_premium = False
+is_premium = False
+if len(license_key.strip()) > 0:
+    with st.sidebar.spinner("Verifying token status..."):
+        if verify_gumroad_key(license_key):
+            st.sidebar.success("🚀 Premium Features Unlocked!")
+            is_premium = True
+        else:
+            st.sidebar.error("❌ Invalid Key Token")
+            is_premium = False
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
     st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
     is_premium = False
 
-# Workspace layout mode selector
+# Mode Selector
 analysis_type = st.sidebar.radio("Select Analysis Dimension", ["Free: 2D Power-Law Fit", "Premium: 3D FSS Curve Collapse"])
 
 if analysis_type == "Premium: 3D FSS Curve Collapse" and not is_premium:
@@ -94,9 +138,7 @@ else:
         df_raw = pd.read_csv(uploaded_file)
         st.write("### 📊 Data Preview (First 5 Rows)", df_raw.head(5))
         
-        # -------------------------------------------------
-        # WORKSPACE FLOW: FREE 2D MODEL RUN
-        # -------------------------------------------------
+        # 2D MODEL CODE PIPELINE
         if analysis_type == "Free: 2D Power-Law Fit":
             col_n = st.selectbox("System Size Column (n)", df_raw.columns)
             col_g = st.selectbox("Peak Value Column (g_peak)", df_raw.columns)
@@ -115,7 +157,7 @@ else:
                     
                     fig, ax = plt.subplots(figsize=(6, 3.5))
                     ax.scatter(res["n"], res["g"], color="blue", label="Raw Observations", alpha=0.7, zorder=3)
-                    ax.plot(res["n"], res["pred_g"], color="red", linestyle="--", label=f"Power Law Trend Line (Slope={round(res['slope'],2)})")
+                    ax.plot(res["n"], res["pred_g"], color="red", linestyle="--", label=f"Trend Line (Slope={round(res['slope'],2)})")
                     ax.set_xscale("log")
                     ax.set_yscale("log")
                     ax.set_xlabel("System Size (n) - Log Scale")
@@ -124,9 +166,7 @@ else:
                     ax.legend()
                     st.pyplot(fig)
                     
-        # -------------------------------------------------
-        # WORKSPACE FLOW: PREMIUM 3D FSS RUN
-        # -------------------------------------------------
+        # 3D PREMIUM CODE PIPELINE
         elif analysis_type == "Premium: 3D FSS Curve Collapse":
             col_n = st.selectbox("System Size Column (n)", df_raw.columns)
             col_g = st.selectbox("Control Parameter Column (g)", df_raw.columns)
@@ -150,7 +190,6 @@ else:
                     fig, ax = plt.subplots(1, 2, figsize=(11, 4.5))
                     sorted_bins = sorted(df_fss['n'].unique())
                     
-                    # Left chart generation matrix
                     for n_v in sorted_bins:
                         sub = df_fss[df_fss['n'] == n_v]
                         ax[0].scatter(sub['g'], sub['K'], alpha=0.5, label=f"Bin {n_v}")
@@ -159,13 +198,6 @@ else:
                     ax[0].set_ylabel("Observable Target (K)")
                     ax[0].grid(True, alpha=0.2)
                     
-                    # Right chart generation matrix
                     for n_v in sorted_bins:
                         sub = df_fss[df_fss['n'] == n_v]
                         x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))
-                        ax[1].scatter(x_collapsed, sub['K'], alpha=0.5)
-                    ax[1].set_title("Optimized Phase Collapse Line")
-                    ax[1].set_xlabel(f"(g - {round(res['gc'], 2)}) * n^(1/{round(res['nu'], 2)})")
-                    ax[1].grid(True, alpha=0.2)
-                    
-                    st.pyplot(fig)
