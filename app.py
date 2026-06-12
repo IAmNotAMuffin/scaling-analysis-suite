@@ -1,14 +1,37 @@
-import streamlit as st
+  import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
-st.set_page_config(page_title="Premium FSS Engine", layout="wide", page_icon="🧮", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_icon="🧮")
 
-# ==========================================
-# PREMIUM 3D FSS DATA COLLAPSE ENGINE
-# ==========================================
+# =====================================================
+# ENGINE 1: FREE 2D LOG-LOG REGRESSION
+# =====================================================
+def run_2d_regression_engine(df):
+    df = df.copy().dropna().sort_values("n")
+    if "n" not in df.columns or "g_peak" not in df.columns:
+        return {"error": "MISSING_COLUMNS (Need columns: n, g_peak)"}
+    n, g = df["n"].values, df["g_peak"].values
+    if len(n) < 4 or np.any(n <= 0) or np.any(g <= 0):
+        return {"error": "INVALID_DATA (Need 4+ rows, values > 0)"}
+        
+    log_n, log_g = np.log(n), np.log(g)
+    slope, intercept = np.polyfit(log_n, log_g, 1)
+    pred = slope * log_n + intercept
+    
+    ss_res = np.sum((log_g - pred) ** 2)
+    ss_tot = np.sum((log_g - np.mean(log_g)) ** 2)
+    r2 = 1 - (ss_res / ss_tot if ss_tot != 0 else 1)
+    confidence = 1 / (1 + np.std(log_g - pred))
+    regime = "STRONG_SCALING" if r2 > 0.9 else ("WEAK_SCALING" if r2 > 0.7 else "NO_CLEAR_SCALING")
+    
+    return {"slope": slope, "r2": r2, "confidence": confidence, "regime": regime, "n": n, "g": g, "pred_g": np.exp(pred)}
+
+# =====================================================
+# ENGINE 2: PREMIUM 3D FSS DATA COLLAPSE
+# =====================================================
 def run_3d_fss_engine(df):
     system_sizes = np.sort(df['n'].unique())
     
@@ -34,16 +57,15 @@ def run_3d_fss_engine(df):
     score = 1.0 / (1.0 + res.fun)
     verdict = "STRONG UNIVERSAL SCALING" if score > 0.8 else ("WEAK SCALING" if score > 0.4 else "NO UNIVERSAL SCALING")
     
-    # Securely map array indices to distinct dictionary floats
     return {"gc": float(res.x[0]), "nu": float(res.x[1]), "score": float(score), "verdict": verdict}
 
-# ==========================================
+# =====================================================
 # STREAMLIT USER INTERFACE LAYOUT
-# ==========================================
-st.title("🧮 Premium 3D Finite-Size Scaling Suite")
-st.write("Perform multi-dimensional curve optimizations and universal data scaling calculations instantly.")
+# =====================================================
+st.title("🧮 Universal Scientific Scaling Suite")
+st.write("Analyze power-laws and test multi-dimensional finite-size scaling collapses inside one unified workspace.")
 
-# Sidebar verification logic flow
+# Sidebar License wall integration
 st.sidebar.header("🔑 Software Authorization")
 license_key = st.sidebar.text_input("Enter Premium Product Key", type="password")
 
@@ -55,58 +77,95 @@ elif len(license_key.strip()) > 0:
     is_premium = False
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
-    st.sidebar.markdown("### 🛒 Storefront Page")
-    st.sidebar.markdown("[👉 Click Here to Get a Key](https://gumroad.com)")
+    st.sidebar.markdown("### 🛒 Need a Premium Key?")
+    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
     is_premium = False
 
-# Content Wrapper Block
-if not is_premium:
-    st.warning("⚠️ Please provide a valid product authorization key token in the sidebar panel to enable data imports.")
-else:
-    uploaded_file = st.file_uploader("Upload Structural Research File (.csv)", type=["csv"])
+# Workspace layout mode selector
+analysis_type = st.sidebar.radio("Select Analysis Dimension", ["Free: 2D Power-Law Fit", "Premium: 3D FSS Curve Collapse"])
 
+if analysis_type == "Premium: 3D FSS Curve Collapse" and not is_premium:
+    st.error("🔒 **Premium Mode Locked.** Please provide your authorized license token in the sidebar panel to enable the 3D Engine.")
+else:
+    st.subheader(f"Workspace: {analysis_type}")
+    uploaded_file = st.file_uploader("Upload Your Dataset (.csv)", type=["csv"])
+    
     if uploaded_file:
         df_raw = pd.read_csv(uploaded_file)
-        st.write("### Data Preview", df_raw.head(5))
+        st.write("### 📊 Data Preview (First 5 Rows)", df_raw.head(5))
         
-        st.info("Map your multi-variable parameters to engine data inputs:")
-        col_n = st.selectbox("System Size Variable (n)", df_raw.columns)
-        col_g = st.selectbox("Control Parameter (g)", df_raw.columns)
-        col_k = st.selectbox("Measured Observable (K)", df_raw.columns)
-        bin_res = st.slider("Scaling Resolution Binning Count", 5, 20, 8)
-        
-        if st.button("🚀 Run Global Optimization Loop"):
-            with st.spinner("Processing curves..."):
-                df_fss = pd.DataFrame({'n': df_raw[col_n], 'g': df_raw[col_g], 'K': df_raw[col_k]}).dropna()
-                df_fss['n'] = pd.qcut(df_fss['n'], q=bin_res, labels=False, duplicates='drop') + 1
-                
-                res = run_3d_fss_engine(df_fss)
-                
-                st.subheader("📈 Extracted Parameters")
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Critical Point (g_c)", round(res["gc"], 4))
-                c2.metric("Critical Exponent (ν)", round(res["nu"], 4))
-                c3.metric("Collapse Quality Score", round(res["score"], 4))
-                st.info(f"**Engine Evaluation:** `{res['verdict']}`")
-                
-                # Diagnostic plotting layout
-                st.subheader("📊 Universal Curve Visualizations")
-                fig, ax = plt.subplots(1, 2, figsize=(11, 4))
-                
-                for n_v in sorted(df_fss['n'].unique()):
-                    sub = df_fss[df_fss['n'] == n_v]
-                    ax.scatter(sub['g'], sub['K'], alpha=0.5, label=f"Bin {n_v}")
-                ax.set_title("Unscaled Input Data")
-                ax.set_xlabel("g")
-                ax.set_ylabel("K")
-                ax.grid(True, alpha=0.2)
-                
-                for n_v in sorted(df_fss['n'].unique()):
-                    sub = df_fss[df_fss['n'] == n_v]
-                    x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))
-                    ax.scatter(x_collapsed, sub['K'], alpha=0.5)
-                ax.set_title("Optimized Data Collapse")
-                ax.set_xlabel(f"(g - {round(res['gc'],2)}) * n^(1/{round(res['nu'],2)})")
-                ax.grid(True, alpha=0.2)
-                
-                st.pyplot(fig)
+        # -------------------------------------------------
+        # WORKSPACE FLOW: FREE 2D MODEL RUN
+        # -------------------------------------------------
+        if analysis_type == "Free: 2D Power-Law Fit":
+            col_n = st.selectbox("System Size Column (n)", df_raw.columns)
+            col_g = st.selectbox("Peak Value Column (g_peak)", df_raw.columns)
+            
+            if st.button("🚀 Run 2D Scaling Regression"):
+                res = run_2d_regression_engine(pd.DataFrame({'n': df_raw[col_n], 'g_peak': df_raw[col_g]}))
+                if "error" in res: 
+                    st.error(res["error"])
+                else:
+                    st.markdown("### 📈 Computed Statistical Fit")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Exponent Slope (α)", round(res["slope"], 4))
+                    c2.metric("R² Alignment Accuracy", round(res["r2"], 4))
+                    c3.metric("System Confidence", round(res["confidence"], 4))
+                    st.info(f"**Identified Dynamic Scaling State:** `{res['regime']}`")
+                    
+                    fig, ax = plt.subplots(figsize=(6, 3.5))
+                    ax.scatter(res["n"], res["g"], color="blue", label="Raw Observations", alpha=0.7, zorder=3)
+                    ax.plot(res["n"], res["pred_g"], color="red", linestyle="--", label=f"Power Law Trend Line (Slope={round(res['slope'],2)})")
+                    ax.set_xscale("log")
+                    ax.set_yscale("log")
+                    ax.set_xlabel("System Size (n) - Log Scale")
+                    ax.set_ylabel("Peak Control Value (g_peak) - Log Scale")
+                    ax.grid(True, which="both", ls="-", alpha=0.2)
+                    ax.legend()
+                    st.pyplot(fig)
+                    
+        # -------------------------------------------------
+        # WORKSPACE FLOW: PREMIUM 3D FSS RUN
+        # -------------------------------------------------
+        elif analysis_type == "Premium: 3D FSS Curve Collapse":
+            col_n = st.selectbox("System Size Column (n)", df_raw.columns)
+            col_g = st.selectbox("Control Parameter Column (g)", df_raw.columns)
+            col_k = st.selectbox("Measured Observable Column (K)", df_raw.columns)
+            bin_res = st.slider("System Size Quantile Binning Resolution", 4, 20, 8)
+            
+            if st.button("🚀 Execute Global Data Collapse Optimization"):
+                with st.spinner("Processing multi-variable curve minimization loops..."):
+                    df_fss = pd.DataFrame({'n': df_raw[col_n], 'g': df_raw[col_g], 'K': df_raw[col_k]}).dropna()
+                    df_fss['n'] = pd.qcut(df_fss['n'], q=bin_res, labels=False, duplicates='drop') + 1
+                    
+                    res = run_3d_fss_engine(df_fss)
+                    
+                    st.markdown("### 📈 Extracted Critical Phase Metrics")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Critical Point (g_c)", round(res["gc"], 4))
+                    c2.metric("Critical Exponent (ν)", round(res["nu"], 4))
+                    c3.metric("Curve Collapse Quality Score", round(res["score"], 4))
+                    st.info(f"**Global Model Evaluation Verdict:** `{res['verdict']}`")
+                    
+                    fig, ax = plt.subplots(1, 2, figsize=(11, 4.5))
+                    sorted_bins = sorted(df_fss['n'].unique())
+                    
+                    # Left chart generation matrix
+                    for n_v in sorted_bins:
+                        sub = df_fss[df_fss['n'] == n_v]
+                        ax[0].scatter(sub['g'], sub['K'], alpha=0.5, label=f"Bin {n_v}")
+                    ax[0].set_title("Unscaled Structural Curves")
+                    ax[0].set_xlabel("Control Parameter (g)")
+                    ax[0].set_ylabel("Observable Target (K)")
+                    ax[0].grid(True, alpha=0.2)
+                    
+                    # Right chart generation matrix
+                    for n_v in sorted_bins:
+                        sub = df_fss[df_fss['n'] == n_v]
+                        x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))
+                        ax[1].scatter(x_collapsed, sub['K'], alpha=0.5)
+                    ax[1].set_title("Optimized Phase Collapse Line")
+                    ax[1].set_xlabel(f"(g - {round(res['gc'], 2)}) * n^(1/{round(res['nu'], 2)})")
+                    ax[1].grid(True, alpha=0.2)
+                    
+                    st.pyplot(fig)
