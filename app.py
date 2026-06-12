@@ -11,14 +11,12 @@ st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_ico
 # AUTOMATED SECURE GUMROAD LICENSE CHECKER
 # =====================================================
 def verify_gumroad_key(key):
-    """Contacts Gumroad to check if a license token is valid."""
-    if key == "testkey123":  # Developer backdoor pass key active
-        return True
+    """Contacts Gumroad to check if a license token is valid. Backdoor disabled."""
     try:
         response = requests.post(
             "https://gumroad.com",
             data={
-                "product_id": "scaling-law-3d",  # Your unique Gumroad Product Slug
+                "product_id": "scaling-law-3d",  # Matches your exact product slug
                 "license_key": key
             },
             timeout=5
@@ -78,7 +76,7 @@ def run_3d_fss_engine(df):
     score = 1.0 / (1.0 + res.fun)
     verdict = "STRONG UNIVERSAL SCALING" if score > 0.8 else ("WEAK SCALING" if score > 0.4 else "NO UNIVERSAL SCALING")
     
-    # FIX: Properly extract individual floating points from the NumPy optimizer array indices
+    # INDEPENDENT INDEX FIX: Explicitly separate critical point from scaling exponent
     return {"gc": float(res.x[0]), "nu": float(res.x[1]), "score": float(score), "verdict": verdict}
 
 # =====================================================
@@ -123,7 +121,6 @@ if len(license_key.strip()) > 0:
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
-    # Formatted explicitly to launch your exact card checkout directly
     st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
     is_premium = False
 
@@ -198,3 +195,7 @@ else:
                     ax[0].set_title("Unscaled Structural Curves")
                     ax[0].set_xlabel("Control Parameter (g)")
                     ax[0].set_ylabel("Observable Target (K)")
+                    ax[0].grid(True, alpha=0.2)
+                    
+                    for n_v in sorted_bins:
+                        sub = df_fss[df_fss['n'] == n_v]
