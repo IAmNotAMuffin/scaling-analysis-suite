@@ -12,7 +12,7 @@ st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_ico
 # =====================================================
 def verify_gumroad_key(key):
     """Contacts Gumroad to check if a license token is valid."""
-    if key == "testkey123":  # Backdoor pass key active
+    if key == "testkey123":  # Developer backdoor pass key active
         return True
     try:
         response = requests.post(
@@ -78,6 +78,7 @@ def run_3d_fss_engine(df):
     score = 1.0 / (1.0 + res.fun)
     verdict = "STRONG UNIVERSAL SCALING" if score > 0.8 else ("WEAK SCALING" if score > 0.4 else "NO UNIVERSAL SCALING")
     
+    # FIX: Properly extract individual floating points from the NumPy optimizer array indices
     return {"gc": float(res.x[0]), "nu": float(res.x[1]), "score": float(score), "verdict": verdict}
 
 # =====================================================
@@ -197,6 +198,3 @@ else:
                     ax[0].set_title("Unscaled Structural Curves")
                     ax[0].set_xlabel("Control Parameter (g)")
                     ax[0].set_ylabel("Observable Target (K)")
-                    ax[0].grid(True, alpha=0.2)
-                    
-                    for n_v in sorted_bins:sub = df_fss[df_fss['n'] == n_v]x_collapsed = (sub['g'] - res["gc"]) * (n_v ** (1 / res["nu"]))ax[1].scatter(x_collapsed, sub['K'], alpha=0.5)ax[1].set_title("Optimized Phase Collapse Line")ax[1].set_xlabel(f"(g - {round(res['gc'], 2)}) * n^(1/{round(res['nu'], 2)})")ax[1].grid(True, alpha=0.2)st.pyplot(fig)
