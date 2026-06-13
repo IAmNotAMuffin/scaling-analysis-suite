@@ -116,7 +116,7 @@ if len(license_key.strip()) > 0:
 else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
-    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
+    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com/l/scaling-law-3d)")
 
 analysis_type = st.sidebar.radio("Select Analysis Dimension", ["Free: 2D Power-Law Fit", "Premium: 3D FSS Curve Collapse"])
 
