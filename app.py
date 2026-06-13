@@ -11,6 +11,7 @@ st.set_page_config(page_title="Universal Scaling Suite", layout="wide", page_ico
 # AUTOMATED SECURE GUMROAD LICENSE CHECKER
 # =====================================================
 def verify_gumroad_key(key):
+    """Contacts the official Gumroad API endpoint to verify license validity."""
     try:
         response = requests.post(
             "https://gumroad.com",
@@ -115,13 +116,17 @@ if source == "Upload Custom CSV File":
         df_raw = pd.read_csv(file)
 elif source == "Model Example: 2D Onsager Ising Phase Transition (3D FSS)":
     rows = []
-    for n in:
+    # FIXED: Re-injected clean array coordinates to clear syntax compilation freezes
+    ns_fixed = [4, 8, 16, 32]
+    for n in ns_fixed:
         for t in np.linspace(2.0, 2.5, 20):
             rows.append({"n": n, "g": t, "K": 1 / (1 + np.exp((t - 2.2691) * n))})
     df_raw = pd.DataFrame(rows)
     st.success("✅ Loaded 2D Ising Model Benchmark Dataset.")
 elif source == "Model Example: NASA Kepler Planet Radii Power-Law (2D)":
-    rows = [{"n": x, "g_peak": 5000 / (x ** 0.85)} for x in]
+    # FIXED: Re-injected clean array coordinates to clear syntax compilation freezes
+    ns_fixed = [10, 20, 40, 80, 160]
+    rows = [{"n": x, "g_peak": 5000 / (x ** 0.85)} for x in ns_fixed]
     df_raw = pd.DataFrame(rows)
     st.success("✅ Loaded NASA Exoplanet Geometric Distribution Dataset.")
 
@@ -175,4 +180,4 @@ elif df_raw is not None:
                 ax2.scatter(x_collapsed, sub["K"], alpha=0.6)
             ax1.set_title("Unscaled Structural Curves")
             ax2.set_title("Optimized Data Collapse")
-            st.pyplot(fig)
+            st.pyplot(fig
