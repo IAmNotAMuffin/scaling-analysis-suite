@@ -63,7 +63,7 @@ def run_3d_fss_engine(df):
     result = minimize(global_cost, x0=[df["g"].mean(), 1.0], bounds=[(df["g"].min(), df["g"].max()), (0.1, 5.0)], method="L-BFGS-B")
     score = 1 / (1 + result.fun)
     verdict = "STRONG UNIVERSAL SCALING" if score > 0.8 else ("WEAK SCALING" if score > 0.4 else "NO UNIVERSAL SCALING")
-    return {"gc": float(result.x[0]), "nu": float(result.x[1]), "score": float(score), "verdict": verdict}
+    return {"gc": float(result.x), "nu": float(result.x), "score": float(score), "verdict": verdict}
 
 # =====================================================
 # STREAMLIT USER INTERFACE LAYOUT
@@ -105,12 +105,18 @@ if source == "Upload Custom CSV File":
     if file: df_raw = pd.read_csv(file)
 elif source == "Model Example: 2D Onsager Ising Phase Transition (3D FSS)":
     st.markdown("🔬 **Physical Baseline:** 2D Ising Model near its magnetic phase transition. Expected: $T_c \\approx 2.2691$, $\\nu = 1.0000$.")
-    rows = [{"n": n, "g": t, "K": 1 / (1 + np.exp((t - 2.2691) * n))} for n in [4, 8, 16, 32] for t in np.linspace(2.0, 2.5, 20)]
+    ns_fixed_ising = [4, 8, 16, 32]
+    rows = []
+    for n in ns_fixed_ising:
+        for t in np.linspace(2.0, 2.5, 20):
+            rows.append({"n": n, "g": t, "K": 1 / (1 + np.exp((t - 2.2691) * n))})
     df_raw = pd.DataFrame(rows)
 elif source == "Model Example: NASA Kepler Planet Radii Power-Law (2D)":
     st.markdown("🔭 **Astronomical Baseline:** Planet sizes vs. system sizes from the NASA Kepler Archive. Expected Exponent: $-0.8500$.")
-    # FIXED: Re-injected full static numerical arrays directly to prevent missing value syntax errors
-    df_raw = pd.DataFrame({"n":, "g_peak": [5000 / (x ** 0.85) for x in [10, 20, 40, 80, 160]]})
+    # SAFE SPLIT FIX: Variables separated completely outside dictionary key to prevent syntax cutoff errors
+    ns_fixed_kepler = [10, 20, 40, 80, 160]
+    g_peaks_kepler = [5000 / (x ** 0.85) for x in ns_fixed_kepler]
+    df_raw = pd.DataFrame({"n": ns_fixed_kepler, "g_peak": g_peaks_kepler})
 
 # Data Execution Core Pipelines
 if analysis_type == "Premium: 3D FSS Curve Collapse" and not is_premium:
