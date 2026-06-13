@@ -122,7 +122,7 @@ else:
     st.sidebar.info("🔒 Enter key to unlock 3D Engine")
     st.sidebar.markdown("### 🛒 Need a Premium Key?")
     # Formatted explicitly to launch your exact direct-checkout menu overlay panel
-    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com)")
+    st.sidebar.markdown("[👉 **Get Your License Key Here**](https://gumroad.com/l/scaling-law-3d)")
     is_premium = False
 
 # Mode Selector
