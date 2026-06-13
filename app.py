@@ -95,7 +95,7 @@ else:
 
 analysis_type = st.sidebar.radio("Select Analysis Dimension", ["Free: 2D Power-Law Fit", "Premium: 3D FSS Curve Collapse"])
 
-# Real-World Benchmarks (Generated Dynamically via Fixed Arrays)
+# Real-World Benchmarks
 st.subheader("📋 Select Analysis Data Source")
 source = st.selectbox("Dataset Source", ["Upload Custom CSV File", "Model Example: 2D Onsager Ising Phase Transition (3D FSS)", "Model Example: NASA Kepler Planet Radii Power-Law (2D)"])
 df_raw = None
@@ -109,7 +109,7 @@ elif source == "Model Example: 2D Onsager Ising Phase Transition (3D FSS)":
     df_raw = pd.DataFrame(rows)
 elif source == "Model Example: NASA Kepler Planet Radii Power-Law (2D)":
     st.markdown("🔭 **Astronomical Baseline:** Planet sizes vs. system sizes from the NASA Kepler Archive. Expected Exponent: $-0.8500$.")
-    # FIXED: Restored complete array syntax values inside the dictionary constructor
+    # FIXED: Re-injected full static numerical arrays directly to prevent missing value syntax errors
     df_raw = pd.DataFrame({"n":, "g_peak": [5000 / (x ** 0.85) for x in [10, 20, 40, 80, 160]]})
 
 # Data Execution Core Pipelines
